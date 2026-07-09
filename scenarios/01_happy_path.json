@@ -1,0 +1,26 @@
+{
+  "name": "01_happy_path",
+  "description": "Candidate joins with their real name, one interviewer. Baseline sanity check.",
+  "expected_candidate": "p_rahul",
+  "context": {
+    "candidate_name": "Rahul Verma",
+    "candidate_email": "rahul.verma@gmail.com",
+    "interviewer_names": ["Priya Sharma"],
+    "meeting_title": "Backend Engineer Interview - Rahul Verma"
+  },
+  "events": [
+    {"ts": 0, "type": "join", "participant_id": "p_priya", "data": {"display_name": "Priya Sharma"}},
+    {"ts": 2, "type": "camera_on", "participant_id": "p_priya"},
+    {"ts": 25, "type": "join", "participant_id": "p_rahul", "data": {"display_name": "Rahul Verma"}},
+    {"ts": 28, "type": "camera_on", "participant_id": "p_rahul"},
+    {"ts": 40, "type": "utterance", "participant_id": "p_priya", "data": {"text": "Hi Rahul, thanks for joining! I'm Priya from the platform team. Could you start by telling me about yourself?", "duration": 12}},
+    {"ts": 55, "type": "utterance", "participant_id": "p_rahul", "data": {"text": "Sure, thanks Priya. I'm Rahul, I've been a backend engineer for about five years. In my current role at Zenpay I led the payments reconciliation service, and before that I worked at a logistics startup where I built their order tracking system from scratch.", "duration": 70}},
+    {"ts": 130, "type": "utterance", "participant_id": "p_priya", "data": {"text": "Great. Can you walk me through the architecture of that reconciliation service?", "duration": 9}},
+    {"ts": 142, "type": "utterance", "participant_id": "p_rahul", "data": {"text": "Of course. My team owned three services. I designed the ingestion layer around Kafka so we could replay events, and the matching engine ran as a stateless consumer group. We kept settlement state in Postgres with an outbox pattern for downstream notifications.", "duration": 95}},
+    {"ts": 245, "type": "utterance", "participant_id": "p_priya", "data": {"text": "How would you handle a poison message in that pipeline?", "duration": 7}},
+    {"ts": 255, "type": "utterance", "participant_id": "p_rahul", "data": {"text": "We hit exactly that in production. I implemented a dead letter topic with bounded retries and an alerting hook, so operators could inspect and re-drive messages after a fix.", "duration": 55}},
+    {"ts": 320, "type": "screen_share_start", "participant_id": "p_rahul"},
+    {"ts": 330, "type": "utterance", "participant_id": "p_priya", "data": {"text": "Let's move on to a short coding exercise. Can you share your screen? Oh great, you already have.", "duration": 10}},
+    {"ts": 345, "type": "utterance", "participant_id": "p_rahul", "data": {"text": "Sure, I'll start with a brute force approach and then optimise. So first I'll parse the input into a map keyed by user id.", "duration": 80}}
+  ]
+}

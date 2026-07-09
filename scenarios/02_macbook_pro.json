@@ -1,0 +1,25 @@
+{
+  "name": "02_macbook_pro",
+  "description": "Candidate joins as 'MacBook Pro' (device name). Name signal is useless; self-introduction in the transcript plus Q/A structure must carry identification.",
+  "expected_candidate": "p_device",
+  "context": {
+    "candidate_name": "Sagar Singh",
+    "candidate_email": "sagar.singh@gmail.com",
+    "interviewer_names": ["Neha Kapoor", "Vikram Rao"],
+    "meeting_title": "SDE-2 Interview | Sagar Singh"
+  },
+  "events": [
+    {"ts": 0, "type": "join", "participant_id": "p_neha", "data": {"display_name": "Neha Kapoor"}},
+    {"ts": 3, "type": "camera_on", "participant_id": "p_neha"},
+    {"ts": 10, "type": "join", "participant_id": "p_vikram", "data": {"display_name": "Vikram Rao"}},
+    {"ts": 12, "type": "camera_on", "participant_id": "p_vikram"},
+    {"ts": 30, "type": "join", "participant_id": "p_device", "data": {"display_name": "MacBook Pro"}},
+    {"ts": 35, "type": "camera_on", "participant_id": "p_device"},
+    {"ts": 50, "type": "utterance", "participant_id": "p_neha", "data": {"text": "Hi! Thanks for joining. Before we start, could you introduce yourself?", "duration": 8}},
+    {"ts": 60, "type": "utterance", "participant_id": "p_device", "data": {"text": "Hi, sure. I'm Sagar, currently working as an SDE at a fintech in Pune. My role is mostly on the ledger side — I built the double entry posting engine we use for settlements.", "duration": 60}},
+    {"ts": 128, "type": "utterance", "participant_id": "p_vikram", "data": {"text": "Nice to meet you Sagar, I'm Vikram, I lead the infra team. Tell me about a hard production incident you handled?", "duration": 12}},
+    {"ts": 143, "type": "utterance", "participant_id": "p_device", "data": {"text": "In my previous role we had a cascading failure when a downstream API slowed down. I was responsible for the mitigation — I implemented circuit breakers and added load shedding at the gateway, which brought error rates down within the hour.", "duration": 85}},
+    {"ts": 240, "type": "utterance", "participant_id": "p_neha", "data": {"text": "How would you design rate limiting for a multi-tenant API?", "duration": 8}},
+    {"ts": 252, "type": "utterance", "participant_id": "p_device", "data": {"text": "I'd start with a token bucket per tenant in Redis, then talk about hot key mitigation. I designed something similar for our public API, so I can walk through the trade-offs between accuracy and latency.", "duration": 75}}
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "06_proxy_speaker",
+  "description": "Diarization scenario: candidate is identified normally, but mid-interview the diarizer detects a SECOND voice in the candidate's audio stream and the live voice embedding drifts away from the enrollment sample — a proxy is answering the hard questions. Identification must hold; fraud flags must fire.",
+  "expected_candidate": "p_karan",
+  "expect_fraud_flags": ["multi_speaker_flag"],
+  "context": {
+    "candidate_name": "Karan Malhotra",
+    "candidate_email": "karan.malhotra@gmail.com",
+    "interviewer_names": ["Sophie Turner"],
+    "meeting_title": "System Design Round - Karan Malhotra"
+  },
+  "events": [
+    {"ts": 0, "type": "join", "participant_id": "p_sophie", "data": {"display_name": "Sophie Turner"}},
+    {"ts": 2, "type": "camera_on", "participant_id": "p_sophie"},
+    {"ts": 18, "type": "join", "participant_id": "p_karan", "data": {"display_name": "Karan M"}},
+    {"ts": 21, "type": "camera_on", "participant_id": "p_karan"},
+    {"ts": 35, "type": "utterance", "participant_id": "p_sophie", "data": {"text": "Hi Karan, thanks for joining. Could you introduce yourself?", "duration": 8}},
+    {"ts": 46, "type": "utterance", "participant_id": "p_karan", "data": {"text": "Hi Sophie, I'm Karan. I've been working as a backend engineer for six years, currently at a healthtech startup where I own the appointments platform.", "duration": 55, "diarization": {"num_speakers": 1, "attribution_match": true, "enrollment_similarity": 0.87}}},
+    {"ts": 110, "type": "utterance", "participant_id": "p_sophie", "data": {"text": "Great. Tell me about a system you designed end to end?", "duration": 7}},
+    {"ts": 120, "type": "utterance", "participant_id": "p_karan", "data": {"text": "Sure — I designed our notification service. In my previous role we had five channels, so I built a fan-out layer with per-channel rate limits and a preference engine in front.", "duration": 70, "diarization": {"num_speakers": 1, "attribution_match": true, "enrollment_similarity": 0.84}}},
+    {"ts": 200, "type": "utterance", "participant_id": "p_sophie", "data": {"text": "Okay, let's go deeper. How would you design a distributed rate limiter that survives region failover with exactly-once semantics?", "duration": 12}},
+    {"ts": 216, "type": "utterance", "participant_id": "p_karan", "data": {"text": "You would want a CRDT-based token accounting layer replicated across regions, with a gossip protocol reconciling grants, and idempotency keys scoped to the failover epoch to preserve exactly-once delivery.", "duration": 65, "diarization": {"num_speakers": 2, "attribution_match": true, "enrollment_similarity": 0.41}}},
+    {"ts": 290, "type": "utterance", "participant_id": "p_sophie", "data": {"text": "Interesting. And how would you test the epoch reconciliation under partition?", "duration": 8}},
+    {"ts": 301, "type": "utterance", "participant_id": "p_karan", "data": {"text": "Jepsen-style fault injection against the gossip layer, asserting convergence invariants across partitions while replaying grant histories.", "duration": 48, "diarization": {"num_speakers": 2, "attribution_match": true, "enrollment_similarity": 0.38}}}
+  ]
+}

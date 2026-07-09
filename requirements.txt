@@ -1,0 +1,11 @@
+# Engine: pure standard library — no required dependencies.
+
+# Dashboard
+fastapi>=0.110
+uvicorn[standard]>=0.29
+
+# Optional LLM reasoner (needs ANTHROPIC_API_KEY)
+anthropic>=0.40
+
+# Tests
+pytest>=8.0

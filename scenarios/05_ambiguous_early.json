@@ -1,0 +1,19 @@
+{
+  "name": "05_ambiguous_early",
+  "description": "First two minutes of a call: both participants joined with generic names and almost nothing has been said. The correct output is 'uncertain' — guessing here would be worse than abstaining.",
+  "expected_candidate": null,
+  "expect_uncertain": true,
+  "context": {
+    "candidate_name": "Aisha Khan",
+    "candidate_email": "aisha.khan@example.com",
+    "interviewer_names": ["Tom Bradley"],
+    "meeting_title": "Interview - Aisha Khan"
+  },
+  "events": [
+    {"ts": 0, "type": "join", "participant_id": "p_a", "data": {"display_name": "User"}},
+    {"ts": 15, "type": "join", "participant_id": "p_b", "data": {"display_name": "Guest"}},
+    {"ts": 30, "type": "utterance", "participant_id": "p_a", "data": {"text": "Hello, can you hear me?", "duration": 3}},
+    {"ts": 36, "type": "utterance", "participant_id": "p_b", "data": {"text": "Yes, loud and clear.", "duration": 2}},
+    {"ts": 45, "type": "utterance", "participant_id": "p_a", "data": {"text": "Great, give me one minute, my colleague is joining.", "duration": 5}}
+  ]
+}

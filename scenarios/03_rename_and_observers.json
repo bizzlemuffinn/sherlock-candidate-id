@@ -1,0 +1,28 @@
+{
+  "name": "03_rename_and_observers",
+  "description": "Candidate joins as 'SP', renames to nickname 'Sam' mid-call. Two silent camera-off observers join. Panel of two interviewers. Tests rename handling (identity keyed on participant ID) and observer elimination.",
+  "expected_candidate": "p_sam",
+  "context": {
+    "candidate_name": "Samuel Peterson",
+    "candidate_email": "sam.peterson88@gmail.com",
+    "interviewer_names": ["Diana Cruz", "Marcus Webb"],
+    "meeting_title": "Final Round - Samuel Peterson"
+  },
+  "events": [
+    {"ts": 0, "type": "join", "participant_id": "p_diana", "data": {"display_name": "Diana Cruz"}},
+    {"ts": 2, "type": "camera_on", "participant_id": "p_diana"},
+    {"ts": 8, "type": "join", "participant_id": "p_marcus", "data": {"display_name": "Marcus Webb"}},
+    {"ts": 10, "type": "camera_on", "participant_id": "p_marcus"},
+    {"ts": 20, "type": "join", "participant_id": "p_sam", "data": {"display_name": "SP"}},
+    {"ts": 24, "type": "camera_on", "participant_id": "p_sam"},
+    {"ts": 45, "type": "join", "participant_id": "p_obs1", "data": {"display_name": "Jordan Lee"}},
+    {"ts": 60, "type": "join", "participant_id": "p_obs2", "data": {"display_name": "HR Shadow"}},
+    {"ts": 70, "type": "utterance", "participant_id": "p_diana", "data": {"text": "Welcome! A couple of colleagues are shadowing today, they'll stay muted. Can you share a bit about your background?", "duration": 14}},
+    {"ts": 88, "type": "utterance", "participant_id": "p_sam", "data": {"text": "Of course. I'm Sam, I've spent the last six years in data platform teams. In my current role I led the migration of our warehouse to a lakehouse architecture, and I built the ingestion framework the whole company uses now.", "duration": 78}},
+    {"ts": 175, "type": "rename", "participant_id": "p_sam", "data": {"new_name": "Sam"}},
+    {"ts": 190, "type": "utterance", "participant_id": "p_marcus", "data": {"text": "Can you walk me through how you handled schema evolution in that framework?", "duration": 9}},
+    {"ts": 202, "type": "utterance", "participant_id": "p_sam", "data": {"text": "We versioned every schema in a registry, and I implemented compatibility checks in CI so producers could not deploy breaking changes. Consumers pinned major versions and we ran dual writes during migrations.", "duration": 88}},
+    {"ts": 300, "type": "utterance", "participant_id": "p_diana", "data": {"text": "What would you do differently if you rebuilt it today?", "duration": 6}},
+    {"ts": 310, "type": "utterance", "participant_id": "p_sam", "data": {"text": "Honestly, I would push more logic into the table format itself. Iceberg has matured a lot, and my team spent effort maintaining code that the format now gives you for free.", "duration": 62}}
+  ]
+}

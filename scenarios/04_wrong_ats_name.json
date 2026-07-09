@@ -1,0 +1,24 @@
+{
+  "name": "04_wrong_ats_name",
+  "description": "The recruiter entered the wrong candidate name in the ATS ('Rohit Sharma'), the real candidate is Deepak. Name and self-intro signals fail entirely; behavior + Q/A structure + interviewer elimination must identify him.",
+  "expected_candidate": "p_deepak",
+  "context": {
+    "candidate_name": "Rohit Sharma",
+    "candidate_email": "rohit.s@example.com",
+    "interviewer_names": ["Ananya Iyer"],
+    "meeting_title": "Frontend Interview - Rohit Sharma"
+  },
+  "events": [
+    {"ts": 0, "type": "join", "participant_id": "p_ananya", "data": {"display_name": "Ananya Iyer"}},
+    {"ts": 3, "type": "camera_on", "participant_id": "p_ananya"},
+    {"ts": 20, "type": "join", "participant_id": "p_deepak", "data": {"display_name": "Deepak K"}},
+    {"ts": 23, "type": "camera_on", "participant_id": "p_deepak"},
+    {"ts": 40, "type": "utterance", "participant_id": "p_ananya", "data": {"text": "Hi, thanks for making the time today. Could you introduce yourself and tell me about your recent work?", "duration": 10}},
+    {"ts": 53, "type": "utterance", "participant_id": "p_deepak", "data": {"text": "Hi Ananya, I'm Deepak. I've been doing frontend for around four years, mostly React and TypeScript. In my current role I own the design system, and I built the theming layer that supports our white-label clients.", "duration": 72}},
+    {"ts": 135, "type": "utterance", "participant_id": "p_ananya", "data": {"text": "Can you explain how you approach performance budgets on a large single page app?", "duration": 9}},
+    {"ts": 147, "type": "utterance", "participant_id": "p_deepak", "data": {"text": "I start from user-centric metrics. My team was responsible for getting LCP under two seconds, so I implemented route level code splitting, moved analytics off the main thread, and set up bundle size checks in CI that fail the build past budget.", "duration": 90}},
+    {"ts": 250, "type": "utterance", "participant_id": "p_ananya", "data": {"text": "Let's do a quick exercise. Can you share your screen and build a small component with me?", "duration": 9}},
+    {"ts": 265, "type": "screen_share_start", "participant_id": "p_deepak"},
+    {"ts": 270, "type": "utterance", "participant_id": "p_deepak", "data": {"text": "Sure, screen is up. I'll scaffold it with a controlled input first and then add the debounced search behaviour.", "duration": 65}}
+  ]
+}

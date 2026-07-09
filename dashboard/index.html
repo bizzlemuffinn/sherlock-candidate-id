@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sherlock — Candidate Identifier</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --dim: #8b949e;
+    --green: #3fb950; --yellow: #d29922; --red: #f85149; --blue: #58a6ff;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    padding: 20px; max-width: 1200px; margin: 0 auto;
+  }
+  h1 { font-size: 18px; margin-bottom: 4px; }
+  h1 span { color: var(--dim); font-weight: normal; }
+  .controls { margin: 14px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  select, button {
+    background: var(--panel); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 14px; font: inherit; cursor: pointer;
+  }
+  button:hover { border-color: var(--blue); }
+  .grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 14px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px; margin-bottom: 14px;
+  }
+  .panel h2 { font-size: 12px; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; letter-spacing: 1px; }
+  .verdict { font-size: 20px; font-weight: bold; }
+  .verdict.confident { color: var(--green); }
+  .verdict.uncertain { color: var(--yellow); }
+  .prow { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  .pname { width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ptags { color: var(--dim); font-size: 11px; width: 90px; }
+  .barwrap { flex: 1; background: #0d1117; border-radius: 4px; height: 18px; overflow: hidden; border: 1px solid var(--border); }
+  .bar { height: 100%; background: var(--blue); transition: width .4s ease, background .4s; }
+  .bar.top { background: var(--green); }
+  .pct { width: 48px; text-align: right; }
+  #chart { width: 100%; height: 180px; }
+  .log { max-height: 380px; overflow-y: auto; font-size: 12.5px; }
+  .log div { padding: 3px 0; border-bottom: 1px solid #1c2128; }
+  .log .pos { color: var(--green); } .log .neg { color: var(--red); } .log .neu { color: var(--dim); }
+  .transcript { max-height: 200px; overflow-y: auto; font-size: 12.5px; color: var(--dim); }
+  .transcript b { color: var(--text); }
+  .why div { padding: 3px 0; font-size: 12.5px; }
+</style>
+</head>
+<body>
+  <h1>🕵️ Sherlock <span>— real-time interview candidate identification</span></h1>
+  <div class="controls">
+    <select id="scenario"></select>
+    <button id="run">▶ Run scenario</button>
+    <span id="status" style="color: var(--dim)"></span>
+  </div>
+
+  <div class="panel">
+    <h2>Verdict</h2>
+    <div id="verdict" class="verdict uncertain">waiting…</div>
+    <div id="posteriors"></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <h2>Confidence over time</h2>
+        <canvas id="chart" width="640" height="180"></canvas>
+      </div>
+      <div class="panel">
+        <h2>Why (top participant evidence)</h2>
+        <div id="why" class="why"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h2>Evidence feed</h2>
+        <div id="evlog" class="log"></div>
+      </div>
+      <div class="panel">
+        <h2>Transcript / events</h2>
+        <div id="transcript" class="transcript"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+let ws = null, series = {}, names = {}, colors = {}, tmax = 1;
+const PALETTE = ["#3fb950","#58a6ff","#d29922","#f85149","#bc8cff","#39c5cf"];
+
+async function loadScenarios() {
+  const list = await (await fetch("/scenarios")).json();
+  $("scenario").innerHTML = list.map(s =>
+    `<option value="${s.file}">${s.name} — ${s.description.slice(0,70)}…</option>`).join("");
+}
+
+function drawChart() {
+  const c = $("chart"), ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.strokeStyle = "#30363d";
+  ctx.setLineDash([4,4]);
+  const thY = c.height - 0.60 * c.height;
+  ctx.beginPath(); ctx.moveTo(0, thY); ctx.lineTo(c.width, thY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#8b949e"; ctx.font = "10px monospace";
+  ctx.fillText("confidence threshold 0.60", 6, thY - 4);
+  for (const pid in series) {
+    const pts = series[pid];
+    if (pts.length < 2) continue;
+    ctx.strokeStyle = colors[pid]; ctx.lineWidth = 2; ctx.beginPath();
+    pts.forEach(([t,p], i) => {
+      const x = (t / tmax) * (c.width - 10) + 5;
+      const y = c.height - p * (c.height - 10) - 5;
+      i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    });
+    ctx.stroke();
+  }
+}
+
+function render(msg) {
+  const v = msg.verdict, parts = msg.participants;
+  tmax = Math.max(tmax, msg.event.ts);
+  let i = 0;
+  for (const pid in v.posteriors) {
+    if (!(pid in series)) { series[pid] = []; colors[pid] = PALETTE[i % PALETTE.length]; }
+    i++;
+    series[pid].push([msg.event.ts, v.posteriors[pid]]);
+    names[pid] = parts[pid].display_name;
+  }
+  drawChart();
+
+  const top = Object.entries(v.posteriors).sort((a,b) => b[1]-a[1])[0];
+  const vd = $("verdict");
+  if (v.status === "confident") {
+    vd.className = "verdict confident";
+    vd.textContent = `CANDIDATE = ${names[v.candidate_id]} (${(v.confidence*100).toFixed(0)}%)`;
+  } else {
+    vd.className = "verdict uncertain";
+    vd.textContent = top ? `UNCERTAIN — top: ${names[top[0]]} (${(top[1]*100).toFixed(0)}%)` : "UNCERTAIN";
+  }
+
+  $("posteriors").innerHTML = Object.entries(v.posteriors)
+    .sort((a,b) => b[1]-a[1])
+    .map(([pid,p]) => {
+      const pt = parts[pid];
+      const tags = [pt.camera_on ? "📷" : "", pt.is_sharing ? "🖥️" : "",
+                    `${Math.round(pt.talk_seconds)}s`].filter(Boolean).join(" ");
+      return `<div class="prow">
+        <span class="pname" style="color:${colors[pid]}">${pt.display_name}</span>
+        <span class="ptags">${tags}</span>
+        <span class="barwrap"><span class="bar ${pid===top[0]?"top":""}" style="width:${p*100}%"></span></span>
+        <span class="pct">${(p*100).toFixed(0)}%</span></div>`;
+    }).join("");
+
+  $("why").innerHTML = v.explanation.map(e => `<div>• ${e}</div>`).join("");
+
+  for (const e of msg.evidence) {
+    const el = document.createElement("div");
+    if (e.flag) {
+      el.innerHTML = `<span class="neg">⚑ FRAUD FLAG</span>
+        <b>${names[e.participant_id] || e.participant_id}</b>
+        <span style="color:var(--dim)">[${e.signal}]</span> ${e.reason}`;
+      el.style.background = "rgba(248,81,73,.08)";
+    } else {
+      const cls = e.log_lr > 0 ? "pos" : e.log_lr < 0 ? "neg" : "neu";
+      el.innerHTML = `<span class="${cls}">${e.log_lr>0?"+":""}${e.log_lr}</span>
+        <b>${names[e.participant_id] || e.participant_id}</b>
+        <span style="color:var(--dim)">[${e.signal}]</span> ${e.reason}`;
+    }
+    $("evlog").prepend(el);
+  }
+
+  const ev = msg.event;
+  const line = document.createElement("div");
+  line.innerHTML = ev.kind === "utterance"
+    ? `<b>${names[ev.participant_id]}:</b> ${ev.text}`
+    : `<i>t=${ev.ts}s ${names[ev.participant_id] || ev.participant_id} → ${ev.kind}</i>`;
+  $("transcript").prepend(line);
+}
+
+$("run").onclick = () => {
+  if (ws) ws.close();
+  series = {}; names = {}; colors = {}; tmax = 1;
+  ["posteriors","evlog","transcript","why"].forEach(id => $(id).innerHTML = "");
+  $("verdict").textContent = "waiting…"; $("verdict").className = "verdict uncertain";
+  ws = new WebSocket(`ws://${location.host}/ws/${$("scenario").value}`);
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === "init") {
+      $("status").textContent = `running — candidate on invite: ${msg.context.candidate_name} | LLM: ${msg.llm_enabled ? "on" : "off"}`;
+    } else if (msg.type === "update") {
+      render(msg);
+    } else if (msg.type === "done") {
+      $("status").textContent = "replay complete";
+    }
+  };
+};
+
+loadScenarios();
+</script>
+</body>
+</html>
